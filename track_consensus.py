@@ -135,6 +135,40 @@ def main():
 
         browser.close()
         
+    # Get previous excel file to calculate weekly diff
+    import glob, os
+    current_filename = f"{datetime.now().strftime('%y%m%d')}_Sector_consensus.xlsx"
+    old_files = sorted([f for f in glob.glob("*_Sector_consensus.xlsx") if not os.path.basename(f).startswith("~$") and f != current_filename])
+    old_xls = pd.ExcelFile(old_files[-1]) if old_files else None
+    
+    for sheet_name, df in sector_results.items():
+        if df is None or df.empty:
+            continue
+            
+        if old_xls and sheet_name in old_xls.sheet_names:
+            df_old = pd.read_excel(old_xls, sheet_name=sheet_name)
+            if not df_old.empty:
+                col_name_jongmok = df.columns[0]
+                col_name_item = df.columns[1]
+                current_col = df.columns[2]
+                old_val_col = df_old.columns[2]
+                
+                merged = pd.merge(df, df_old[[col_name_jongmok, col_name_item, old_val_col]], on=[col_name_jongmok, col_name_item], how='left', suffixes=('', '_old'))
+                col_to_extract = f"{old_val_col}_old" if f"{old_val_col}_old" in merged.columns else old_val_col
+                df["전주 Consensus"] = merged[col_to_extract]
+                
+                def calc_weekly_diff(row):
+                    try:
+                        curr = float(str(row[current_col]).replace(',', ''))
+                        prev = float(str(row["전주 Consensus"]).replace(',', ''))
+                        if prev == 0:
+                            return None
+                        return (curr - prev) / abs(prev) * 100
+                    except:
+                        return None
+                        
+                df["전주 대비 증감율(%)"] = df.apply(calc_weekly_diff, axis=1)
+
     yymmdd = datetime.now().strftime("%y%m%d")
     filename = f"{yymmdd}_Sector_consensus.xlsx"
     with pd.ExcelWriter(filename) as writer:
@@ -160,16 +194,17 @@ def main():
         # 열 기준 필터링
         if len(df.columns) > 2 and "1개월전" in df.columns and "1개월전 대비 증감율(%)" in df.columns:
             current_date_col = df.columns[2]
-            cols_to_keep = ['종목명', '항목', current_date_col, '1개월전', '1개월전 대비 증감율(%)']
+            cols_to_keep = ['종목명', '항목', current_date_col, '전주 Consensus', '전주 대비 증감율(%)', '1개월전', '1개월전 대비 증감율(%)']
             filtered = filtered[[c for c in cols_to_keep if c in filtered.columns]]
             
             # 숫자 포맷팅 (소수점 2자리 및 천단위 콤마)
-            if "1개월전 대비 증감율(%)" in filtered.columns:
-                filtered["1개월전 대비 증감율(%)"] = filtered["1개월전 대비 증감율(%)"].apply(
-                    lambda x: f"{x:.2f}%" if pd.notna(x) and isinstance(x, (int, float)) else x
-                )
+            for diff_col in ["전주 대비 증감율(%)", "1개월전 대비 증감율(%)"]:
+                if diff_col in filtered.columns:
+                    filtered[diff_col] = filtered[diff_col].apply(
+                        lambda x: f"{x:+.2f}%" if pd.notna(x) and isinstance(x, (int, float)) else x
+                    )
                 
-            for col in [current_date_col, '1개월전']:
+            for col in [current_date_col, '전주 Consensus', '1개월전']:
                 if col in filtered.columns:
                     filtered[col] = filtered[col].apply(
                         lambda x: f"{x:,.0f}" if pd.notna(x) and isinstance(x, (int, float)) else x

@@ -147,7 +147,7 @@ def download_reports(start_date="260501", end_date="260524"):
 
 if __name__ == "__main__":
     # 다운로드 받을 기간 설정 (YYMMDD 형식)
-    START_DATE = "260501"
-    END_DATE = "260524"
+    START_DATE = "260525"
+    END_DATE = "260530"
     print(f"다운로드 기간: {START_DATE} ~ {END_DATE}")
     download_reports(start_date=START_DATE, end_date=END_DATE)
