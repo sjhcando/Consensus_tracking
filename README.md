@@ -42,13 +42,18 @@
  ┣ 📜 Consensus_Tracking_Master_Rule.md # 📕 통합 분석 가이드 & 마스터 룰북
  ┣ 📜 stocks.json                    # 모니터링 대상 5개 섹터 및 종목코드 리스트
  ┣ 📜 Stocks_Valuation.json          # 📊 [NEW] 밸류에이션 수집 대상 섹터 및 종목 리스트
- ┣ 📜 Stocks_Valuation.xlsx          # 📊 [NEW] 밸류에이션 캡쳐 이미지 통합 엑셀 (Git 제외)
  ┣ 📜 credentials.json               # 🔑 [NEW] Valley AI 로그인 계정 정보 (Git 제외)
  ┣ 📜 README.md                      # 프로그램 사용 설명서
  ┣ 📜 .gitignore                     # Git 제외 설정 (엑셀 파일, 개인 정보, 대용량 PDF 등)
  ┣ 📜 Consensus_Diff_[날짜]_[날짜].md # 주간 컨센서스 변동량 결과 분석표 (자동 생성)
- ┣ 📜 [YYMMDD]_[섹터]_consensus.md   # 이번 주 섹터별 최종 수집 데이터 요약 (자동 생성)
- ┣ 📜 [YYMMDD]_[섹터]_update.md      # 최종 발행된 섹터별 종합 투자 분석 보고서
+ ┣ 📂 컨센서스                        # 📂 [NEW] 수집된 컨센서스 및 밸류에이션 엑셀 파일들 저장 폴더 (Git 제외)
+ ┃ ┣ 📜 [YYMMDD]_Sector_consensus.xlsx # 엑셀 원본 통합 데이터
+ ┃ ┗ 📜 Stocks_Valuation.xlsx        # 밸류에이션 캡쳐 이미지 통합 엑셀
+ ┣ 📂 반도체                         # 📂 반도체 섹터 요약 및 투자 보고서 폴더
+ ┣ 📂 방산                           # 📂 방산 섹터 요약 및 투자 보고서 폴더
+ ┣ 📂 전기전자                       # 📂 전기전자 섹터 요약 및 투자 보고서 폴더
+ ┣ 📂 전력기기                       # 📂 전력기기 섹터 요약 및 투자 보고서 폴더
+ ┣ 📂 조선                           # 📂 조선 섹터 요약 및 투자 보고서 폴더
  ┗ 📂 naver_reports                  # 다운로드된 PDF 및 변환된 TXT 리포트 (Git 제외)
 ```
 

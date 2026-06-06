@@ -23,4 +23,6 @@ naver_reports/
 # Credentials
 credentials.json
 valley_*.png
+valley_temp/
+
 

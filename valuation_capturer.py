@@ -102,7 +102,8 @@ def run_valuation_pipeline(email, password, stocks_dict, metric="PER", headed=Fa
     temp_dir = "valley_temp"
     os.makedirs(temp_dir, exist_ok=True)
     
-    excel_path = "Stocks_Valuation.xlsx"
+    os.makedirs("컨센서스", exist_ok=True)
+    excel_path = os.path.join("컨센서스", "Stocks_Valuation.xlsx")
     
     # 1. Initialize Excel Workbook
     if os.path.exists(excel_path):

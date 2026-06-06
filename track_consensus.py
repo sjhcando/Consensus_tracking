@@ -137,8 +137,9 @@ def main():
         
     # Get previous excel file to calculate weekly diff
     import glob, os
+    os.makedirs("컨센서스", exist_ok=True)
     current_filename = f"{datetime.now().strftime('%y%m%d')}_Sector_consensus.xlsx"
-    old_files = sorted([f for f in glob.glob("*_Sector_consensus.xlsx") if not os.path.basename(f).startswith("~$") and f != current_filename])
+    old_files = sorted([f for f in glob.glob("컨센서스/*_Sector_consensus.xlsx") if not os.path.basename(f).startswith("~$") and os.path.basename(f) != current_filename])
     old_xls = pd.ExcelFile(old_files[-1]) if old_files else None
     
     for sheet_name, df in sector_results.items():
@@ -170,7 +171,7 @@ def main():
                 df["전주 대비 증감율(%)"] = df.apply(calc_weekly_diff, axis=1)
 
     yymmdd = datetime.now().strftime("%y%m%d")
-    filename = f"{yymmdd}_Sector_consensus.xlsx"
+    filename = os.path.join("컨센서스", f"{yymmdd}_Sector_consensus.xlsx")
     with pd.ExcelWriter(filename) as writer:
         wrote_any = False
         for sheet_name, df in sector_results.items():
@@ -213,7 +214,8 @@ def main():
         return filtered
 
     for sector in sectors_dict.keys():
-        md_filename = f"{yymmdd}_{sector}_consensus.md"
+        os.makedirs(sector, exist_ok=True)
+        md_filename = os.path.join(sector, f"{yymmdd}_{sector}_consensus.md")
         with open(md_filename, "w", encoding="utf-8") as md_file:
             md_file.write(f"# {sector} 컨센서스 요약 ({yymmdd})\n\n")
             
