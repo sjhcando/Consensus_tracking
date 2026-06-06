@@ -39,6 +39,7 @@
  ┣ 📜 download_naver_research.py     # 네이버 증권 PDF 리포트 다운로드 스크립트
  ┣ 📜 compare_consensus.py           # 주간 컨센서스 변동 추출 및 비교 스크립트
  ┣ 📜 valuation_capturer.py          # 📊 [NEW] 밸류에이션 차트 자동 캡쳐 및 엑셀 삽입 스크립트
+ ┣ 📜 dart_disclosure_capturer.py    # 🏢 [NEW] Open DART 기업 공시 취합 및 엑셀 저장 스크립트
  ┣ 📜 Consensus_Tracking_Master_Rule.md # 📕 통합 분석 가이드 & 마스터 룰북
  ┣ 📜 stocks.json                    # 모니터링 대상 5개 섹터 및 종목코드 리스트
  ┣ 📜 Stocks_Valuation.json          # 📊 [NEW] 밸류에이션 수집 대상 섹터 및 종목 리스트
@@ -90,7 +91,23 @@ python valuation_capturer.py --metric PBR
 python valuation_capturer.py --metric PSR --headed
 ```
 
-### 4. 컨센서스 자동화 파이프라인 원클릭 실행
+### 4. [NEW] Open DART 기업 공시 수집 실행
+공시 시스템(Open DART)에서 국내 특정 기업들의 공시 기록 목록을 수집하여 엑셀 파일(`컨센서스/DART_Disclosures.xlsx`)로 저장합니다.
+```bash
+# 기본 실행 (삼성전자, 삼성전기의 2026년 5월 공시 목록 수집)
+python dart_disclosure_capturer.py
+
+# 특정 날짜 범위를 직접 지정해 수집할 때 (YYYYMMDD)
+python dart_disclosure_capturer.py --start 20260501 --end 20260531
+
+# Stocks_Valuation.json에 등록된 모든 국내(KR) 기업의 공시를 수집할 때
+python dart_disclosure_capturer.py --all-stocks
+
+# 특정 Open DART API Key를 입력해 실행할 때
+python dart_disclosure_capturer.py --apikey YOUR_API_KEY
+```
+
+### 5. 컨센서스 자동화 파이프라인 원클릭 실행
 매주 주말, 아래 명령어를 실행하여 크롤링부터 리포트 텍스트 변환 및 깃허브 업로드까지 논스톱으로 처리합니다.
 ```bash
 # 기본 실행 (과거 5일간의 리포트 다운로드 및 Git 업로드 자동 진행)
