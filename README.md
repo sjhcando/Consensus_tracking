@@ -20,7 +20,12 @@
    * 네이버 증권 리서치 게시판에서 지정한 주간 범위의 리포트를 자동 검색하여 섹터별 폴더로 PDF를 자동 정리합니다.
    * `pypdf` 라이브러리를 활용하여 다운로드된 최신 PDF를 프로그램으로 파싱 가능한 **텍스트(`.txt`) 파일로 자동 일괄 변환**합니다. (AI 분석의 정성 데이터로 즉시 활용 가능)
 
-4. **마스터 룰북 및 요약 가이드** (`Consensus_Tracking_Master_Rule.md`)
+4. **[NEW] 밸류에이션 비교 테이블 자동화** (`valuation_capturer.py`)
+   * Valley.town 사이트에 로그인하여 지정한 밸류에이션 지표(PER, PBR, PSR, P/FCF 등) 차트 카드를 정확히 크롭(Crop) 캡쳐합니다.
+   * `Stocks_Valuation.json`에 설정된 섹터 분류를 토대로 **엑셀 워크북(`Stocks_Valuation.xlsx`) 내에 시트별로 분리 및 생성**하여 날짜별로 이미지를 차례대로 자동 삽입합니다. (동적 컬럼 매핑 지원)
+   * direct URL 접속 실패 시 검색 및 자동완성 탐색으로 자동 리다이렉트하는 **Fallback 탐색 로직**을 내장하여 안전성이 뛰어납니다.
+
+5. **마스터 룰북 및 요약 가이드** (`Consensus_Tracking_Master_Rule.md`)
    * AI 에이전트 분석용 통합 가이드라인입니다. 5개 핵심 섹터별 상세 모니터링 변수와 결과물 양식(YYMMDD_섹터_update.md) 템플릿을 명확하게 정의하고 있습니다.
 
 ---
@@ -33,10 +38,14 @@
  ┣ 📜 track_consensus.py             # 주간 컨센서스 크롤링 스크립트
  ┣ 📜 download_naver_research.py     # 네이버 증권 PDF 리포트 다운로드 스크립트
  ┣ 📜 compare_consensus.py           # 주간 컨센서스 변동 추출 및 비교 스크립트
+ ┣ 📜 valuation_capturer.py          # 📊 [NEW] 밸류에이션 차트 자동 캡쳐 및 엑셀 삽입 스크립트
  ┣ 📜 Consensus_Tracking_Master_Rule.md # 📕 통합 분석 가이드 & 마스터 룰북
  ┣ 📜 stocks.json                    # 모니터링 대상 5개 섹터 및 종목코드 리스트
+ ┣ 📜 Stocks_Valuation.json          # 📊 [NEW] 밸류에이션 수집 대상 섹터 및 종목 리스트
+ ┣ 📜 Stocks_Valuation.xlsx          # 📊 [NEW] 밸류에이션 캡쳐 이미지 통합 엑셀 (Git 제외)
+ ┣ 📜 credentials.json               # 🔑 [NEW] Valley AI 로그인 계정 정보 (Git 제외)
  ┣ 📜 README.md                      # 프로그램 사용 설명서
- ┣ 📜 .gitignore                     # Git 제외 설정 (대용량 PDF 폴더 등 제외)
+ ┣ 📜 .gitignore                     # Git 제외 설정 (엑셀 파일, 개인 정보, 대용량 PDF 등)
  ┣ 📜 Consensus_Diff_[날짜]_[날짜].md # 주간 컨센서스 변동량 결과 분석표 (자동 생성)
  ┣ 📜 [YYMMDD]_[섹터]_consensus.md   # 이번 주 섹터별 최종 수집 데이터 요약 (자동 생성)
  ┣ 📜 [YYMMDD]_[섹터]_update.md      # 최종 발행된 섹터별 종합 투자 분석 보고서
@@ -54,7 +63,29 @@ pip install pandas beautifulsoup4 requests openpyxl playwright pypdf
 playwright install
 ```
 
-### 2. 자동화 파이프라인 원클릭 실행
+### 2. [NEW] Valley.town 로그인 정보 구성
+`credentials.json` 파일을 작업 경로 루트에 만들고 로그인 정보를 기입합니다. (이 파일은 `.gitignore`에 등록되어 GitHub에 절대 올라가지 않습니다.)
+```json
+{
+  "email": "YOUR_VALLEY_TOWN_EMAIL",
+  "password": "YOUR_VALLEY_TOWN_PASSWORD"
+}
+```
+
+### 3. 밸류에이션 차트 수집 실행
+아래 명령어를 통해 밸류에이션 지표 차트들을 시트별로 수집해 엑셀로 자동 정리합니다.
+```bash
+# 기본 실행 (PER 지표 캡쳐 진행)
+python valuation_capturer.py
+
+# 특정 다른 지표(PBR, PSR, P/FCF 등)를 골라 캡쳐할 때
+python valuation_capturer.py --metric PBR
+
+# 브라우저 실행 화면을 직접 모니터링하며 작동시키고 싶을 때 (디버그용)
+python valuation_capturer.py --metric PSR --headed
+```
+
+### 4. 컨센서스 자동화 파이프라인 원클릭 실행
 매주 주말, 아래 명령어를 실행하여 크롤링부터 리포트 텍스트 변환 및 깃허브 업로드까지 논스톱으로 처리합니다.
 ```bash
 # 기본 실행 (과거 5일간의 리포트 다운로드 및 Git 업로드 자동 진행)
@@ -85,5 +116,5 @@ python run_pipeline.py --skip-git
      git commit -m "작업 내용 요약"
      git push origin main
      ```
-3. **용량 관련 안내**: `.gitignore` 설정으로 무거운 PDF 폴더(`naver_reports/`)는 GitHub에 올라가지 않고 로컬에만 보존됩니다. 따라서 가벼운 코드와 최종 마크다운 보고서 위주로 연동되어 속도가 매우 빠릅니다.
+3. **용량 및 보안 안내**: `.gitignore` 설정으로 무거운 PDF 폴더(`naver_reports/`), 로그인 인증 정보(`credentials.json`), 차트가 삽입된 엑셀(`*.xlsx`) 등은 GitHub에 올라가지 않고 로컬에만 보존됩니다. 따라서 가벼운 코드와 최종 마크다운 보고서 위주로 연동되어 속도가 매우 빠르고 안전합니다.
 

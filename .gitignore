@@ -19,3 +19,8 @@ test*.xml
 
 # Downloads (Large PDF files)
 naver_reports/
+
+# Credentials
+credentials.json
+valley_*.png
+
