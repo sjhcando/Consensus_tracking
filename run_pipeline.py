@@ -14,7 +14,7 @@ def get_date_range(days=6):
 def run_command(args_list):
     print(f"\n[Running Command] {' '.join(args_list)}...")
     try:
-        res = subprocess.run(args_list, check=True, capture_output=True, text=True, encoding='utf-8')
+        res = subprocess.run(args_list, check=True, capture_output=True, text=True, errors='replace')
         print(res.stdout)
         return True
     except subprocess.CalledProcessError as e:
@@ -26,33 +26,43 @@ def convert_new_pdfs(start_date, end_date):
     print("\n[Converting New PDFs to TXT]...")
     converted_count = 0
     
-    # Walk through naver_reports and convert pdfs starting within the date range
-    for root, _, files in os.walk("naver_reports"):
-        for f in files:
-            if f.endswith(".pdf"):
-                file_date = f[:6]
-                if start_date <= file_date <= end_date:
-                    pdf_path = os.path.join(root, f)
-                    txt_name = f.replace(".pdf", ".txt")
-                    txt_path = os.path.join(root, txt_name)
+    # Read sectors from stocks.json to find their respective folders
+    import json
+    try:
+        with open('stocks.json', 'r', encoding='utf-8') as f:
+            sectors = list(json.load(f).keys())
+    except Exception:
+        sectors = ["반도체", "방산", "전력기기", "조선", "전기전자"]
+        
+    for sector in sectors:
+        if not os.path.exists(sector):
+            continue
+        for root, _, files in os.walk(sector):
+            for f in files:
+                if f.endswith(".pdf"):
+                    file_date = f[:6]
+                    if start_date <= file_date <= end_date:
+                        pdf_path = os.path.join(root, f)
+                        txt_name = f.replace(".pdf", ".txt")
+                        txt_path = os.path.join(root, txt_name)
                     
-                    if not os.path.exists(txt_path):
-                        print(f"Converting: {f} -> {txt_name}")
-                        try:
-                            reader = PdfReader(pdf_path)
-                            text = ""
-                            for i, page in enumerate(reader.pages):
-                                text += f"\n--- Page {i+1} ---\n"
-                                page_text = page.extract_text()
-                                if page_text:
-                                    text += page_text
-                            with open(txt_path, 'w', encoding='utf-8') as tf:
-                                tf.write(text)
-                            converted_count += 1
-                        except Exception as e:
-                            print(f"Failed to convert {f}: {e}")
-                    else:
-                        print(f"Already converted: {txt_name}")
+                        if not os.path.exists(txt_path):
+                            print(f"Converting: {f} -> {txt_name}")
+                            try:
+                                reader = PdfReader(pdf_path)
+                                text = ""
+                                for i, page in enumerate(reader.pages):
+                                    text += f"\n--- Page {i+1} ---\n"
+                                    page_text = page.extract_text()
+                                    if page_text:
+                                        text += page_text
+                                with open(txt_path, 'w', encoding='utf-8') as tf:
+                                    tf.write(text)
+                                converted_count += 1
+                            except Exception as e:
+                                print(f"Failed to convert {f}: {e}")
+                        else:
+                            print(f"Already converted: {txt_name}")
                         
     print(f"PDF to TXT conversion completed. Total converted: {converted_count}")
 

@@ -2,8 +2,8 @@ import os
 from pypdf import PdfReader
 
 def main():
-    pdf = "naver_reports/반도체/260528_반도체_P E의 시대, 재평가의 본격화_SK증권.pdf"
-    txt = "naver_reports/반도체/260528_SK_semi.txt"
+    pdf = "반도체/260528_반도체_P E의 시대, 재평가의 본격화_SK증권.pdf"
+    txt = "반도체/260528_SK_semi.txt"
     try:
         reader = PdfReader(pdf)
         text = ""

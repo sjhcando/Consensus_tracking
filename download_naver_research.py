@@ -57,14 +57,11 @@ def download_reports(start_date="260501", end_date="260524"):
                 "sector_dir": sector
             })
         
-    output_dir = "naver_reports"
-    os.makedirs(output_dir, exist_ok=True)
-    
     for target in targets:
         print(f"--- Fetching for {target['name']} ---")
         
         # 섹터명 하위 폴더 생성
-        sector_path = os.path.join(output_dir, target["sector_dir"])
+        sector_path = target["sector_dir"]
         os.makedirs(sector_path, exist_ok=True)
         
         page = 1

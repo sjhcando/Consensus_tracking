@@ -17,8 +17,9 @@ output.txt
 test*.json
 test*.xml
 
-# Downloads (Large PDF files)
-naver_reports/
+# Downloads (Large PDF/TXT files)
+*.pdf
+*.txt
 
 # Credentials
 credentials.json
