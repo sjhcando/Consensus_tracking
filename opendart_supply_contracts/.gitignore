@@ -1,0 +1,11 @@
+# Runtime/generated files
+__pycache__/
+*.py[cod]
+corpCode/
+docs/
+docs_batch/
+logs/
+outputs/
+*.xlsx
+~$*.xlsx
+*.zip

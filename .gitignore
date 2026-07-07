@@ -27,3 +27,6 @@ valley_*.png
 valley_temp/
 
 
+
+# Keep dependency list for OpenDART supply contracts
+!opendart_supply_contracts/requirements.txt
