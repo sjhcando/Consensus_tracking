@@ -1,3 +1,17 @@
+﻿---
+date: 2026-07-19
+type: consensus
+scope: sector
+asset: 방산
+sector: 방산
+status: active
+stance: monitor
+delta: unchanged
+conviction: mid
+next_trigger:
+Tag:
+---
+
 # 방산 컨센서스 요약 (260719)
 
 ## 연간 (Annual)
@@ -25,4 +39,5 @@
 | LIG넥스원          | 영업이익 | 1,055        | 1,052     | +0.29%                   |
 | 한국항공우주       | 매출액   | 12,899       | 13,115    | -1.65%                   |
 | 한국항공우주       | 영업이익 | 1,045        | 1,092     | -4.30%                   |
+
 

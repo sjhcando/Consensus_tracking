@@ -1,3 +1,17 @@
+﻿---
+date: 2026-07-19
+type: consensus
+scope: sector
+asset: 전력기기
+sector: 전력기기
+status: active
+stance: monitor
+delta: unchanged
+conviction: mid
+next_trigger:
+Tag:
+---
+
 # 전력기기 컨센서스 요약 (260719)
 
 ## 연간 (Annual)
@@ -29,4 +43,5 @@
 | HD현대일렉트릭 | 영업이익 | 2,841        | 2,861     | -0.70%                   |
 | 대한전선       | 매출액   | 10,211       | 10,211    | +0.00%                   |
 | 대한전선       | 영업이익 | 424          | 424       | +0.00%                   |
+
 

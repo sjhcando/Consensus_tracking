@@ -1,3 +1,17 @@
+﻿---
+date: 2026-07-19
+type: consensus
+scope: sector
+asset: 반도체
+sector: 반도체
+status: active
+stance: monitor
+delta: unchanged
+conviction: mid
+next_trigger:
+Tag:
+---
+
 # 반도체 컨센서스 요약 (260719)
 
 ## 연간 (Annual)
@@ -17,4 +31,5 @@
 | 삼성전자   | 영업이익 | 855,118      | 852,499   | +0.31%                   |
 | SK하이닉스 | 매출액   | 825,827      | 812,198   | +1.68%                   |
 | SK하이닉스 | 영업이익 | 631,532      | 620,731   | +1.74%                   |
+
 

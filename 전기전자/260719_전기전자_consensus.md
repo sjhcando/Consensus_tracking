@@ -1,3 +1,17 @@
+﻿---
+date: 2026-07-19
+type: consensus
+scope: sector
+asset: 전기전자
+sector: 전기전자
+status: active
+stance: monitor
+delta: unchanged
+conviction: mid
+next_trigger:
+Tag:
+---
+
 # 전기전자 컨센서스 요약 (260719)
 
 ## 연간 (Annual)
@@ -25,4 +39,5 @@
 | 이수페타시스 | 영업이익 | 739          | 739       | +0.00%                   |
 | 대덕전자     | 매출액   | 3,671        | 3,687     | -0.43%                   |
 | 대덕전자     | 영업이익 | 593          | 581       | +2.07%                   |
+
 

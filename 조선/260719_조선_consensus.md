@@ -1,3 +1,17 @@
+﻿---
+date: 2026-07-19
+type: consensus
+scope: sector
+asset: 조선
+sector: 조선
+status: active
+stance: monitor
+delta: unchanged
+conviction: mid
+next_trigger:
+Tag:
+---
+
 # 조선 컨센서스 요약 (260719)
 
 ## 연간 (Annual)
@@ -29,4 +43,5 @@
 | HD한국조선해양 | 영업이익 | 14,211       | 14,211    | +0.00%                   |
 | 한화엔진       | 매출액   | 3,838        | 3,816     | +0.58%                   |
 | 한화엔진       | 영업이익 | 604          | 601       | +0.50%                   |
+
 
