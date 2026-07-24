@@ -1,3 +1,18 @@
+---
+date: 2026-07-24
+type: process
+scope: process
+ticker:
+sector:
+status: active
+stance: monitor
+delta: unchanged
+conviction: mid
+next_trigger:
+source_from:
+tags:
+---
+
 # Consensus Tracking
 
 투자 종목 및 섹터에 대한 컨센서스(실적 전망치)의 변화를 추출하고, 이러한 컨센서스 변화의 원인을 심층 분석할 수 있도록 증권사 리서치 리포트를 자동 추출 및 텍스트 변환하여 종합 보고서를 작성하는 자동화 프로그램입니다.
@@ -65,7 +80,7 @@
 ### 1. 최초 환경 구성 (데스크탑/노트북 공통)
 필요한 라이브러리를 설치하고 브라우저 바이너리를 설치합니다.
 ```bash
-pip install pandas beautifulsoup4 requests openpyxl playwright pypdf
+pip install pandas beautifulsoup4 requests openpyxl playwright pypdf pykrx
 playwright install
 ```
 
@@ -119,6 +134,26 @@ python run_pipeline.py --start 260525 --end 260530
 # Git 원격 푸시 단계를 건너뛰고 싶을 때
 python run_pipeline.py --skip-git
 ```
+
+### 6. 주간 시황 및 가격 스냅샷 수집
+추적 종목의 주가 수익률, 벤치마크 대비 초과수익률, 52주 고점 대비 하락률, 거래대금 과열 여부를 수집합니다. 결과는 `market_data/` 폴더에 저장됩니다.
+```bash
+# 오늘 기준 수집
+python collect_market_snapshot.py
+
+# 특정 기준일 수집 (YYMMDD)
+python collect_market_snapshot.py --date 260724
+```
+
+생성 파일:
+```text
+market_data/YYMMDD_market_snapshot.csv
+market_data/YYMMDD_sector_market_summary.csv
+```
+
+`price_signal`은 가격 국면을 단순 규칙으로 분류합니다. `overheated`는 매도 신호가 아니라 컨센서스 개선 대비 가격 선반영 가능성을 별도로 점검해야 한다는 의미입니다.
+
+참고: pykrx 지수 API가 환경에 따라 실패할 수 있어, 벤치마크 수익률은 필요 시 ETF 프록시를 사용합니다. KOSPI는 `KODEX 200(069500)`, KOSDAQ은 `KODEX 코스닥150(229200)`을 사용하며 CSV의 `benchmark` 컬럼에 프록시 여부가 표시됩니다.
 
 ---
 
