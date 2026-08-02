@@ -1,8 +1,10 @@
 import json
 import time
+import argparse
 from datetime import datetime
 import pandas as pd
 from playwright.sync_api import sync_playwright
+from project_paths import CONSENSUS_DATA_DIR, sector_consensus_dir
 
 def load_sectors():
     with open('stocks.json', 'r', encoding='utf-8') as f:
@@ -13,11 +15,11 @@ def load_sectors():
         sectors[sector] = [(stock['name'], stock['ticker']) for stock in stocks]
     return sectors
 
-def extract_table(page, index):
-    return page.evaluate(f'''(index) => {{
-        const tables = document.querySelectorAll('table');
-        if (tables.length <= index) return null;
-        const table = tables[index];
+def extract_table(page, selector):
+    """Extract a table by its stable DOM ID, not its position on the page."""
+    return page.evaluate('''(selector) => {
+        const table = document.querySelector(selector);
+        if (!table) return null;
         const result = [];
         table.querySelectorAll('tr').forEach(tr => {{
             const row = [];
@@ -28,7 +30,7 @@ def extract_table(page, index):
             if (row.length > 0) result.push(row);
         }});
         return result;
-    }}''', index)
+    }''', selector)
 
 def format_df(raw_data, stock_name):
     if not raw_data or len(raw_data) < 2:
@@ -80,17 +82,25 @@ def format_df(raw_data, stock_name):
     return df
 
 def get_consensus_data(ticker, stock_name, page):
-    url = f"https://comp.fnguide.com/SVO2/ASP/SVD_Consensus.asp?pGB=1&gicode={ticker}&cID=&MenuYn=Y&ReportGB=&NewMenuID=108&stkGb=701"
+    url = (
+        "https://wcomp.fnguide.com/CompanyInfo/Consensus?"
+        f"c_id=AA&menu_type=01&cmp_cd={ticker}"
+    )
     
     annual_df = None
     quarter_df = None
 
-    page.goto(url, wait_until="networkidle")
-    time.sleep(3)
+    page.goto(url, wait_until="domcontentloaded", timeout=30000)
+    page.locator("#cns_trend_table").wait_for(state="visible", timeout=30000)
+    page.locator("#cns_trend_table tbody tr").first.wait_for(
+        state="attached", timeout=30000
+    )
     
     # Extract Annual Data
-    raw_annual = extract_table(page, 1)
+    raw_annual = extract_table(page, "#cns_trend_table")
     annual_df = format_df(raw_annual, stock_name)
+    page.locator("#trend_aq_typ button[data-val='Q']").click()
+    page.wait_for_timeout(1000)
     
     # Click Quarterly
     try:
@@ -101,7 +111,7 @@ def get_consensus_data(ticker, stock_name, page):
             buttons[0].click()
             
         time.sleep(2)
-        raw_quarter = extract_table(page, 1)
+        raw_quarter = extract_table(page, "#cns_trend_table")
         quarter_df = format_df(raw_quarter, stock_name)
         
     except Exception as e:
@@ -110,6 +120,13 @@ def get_consensus_data(ticker, stock_name, page):
     return annual_df, quarter_df
 
 def main():
+    parser = argparse.ArgumentParser(description="Collect consensus data for tracked sectors.")
+    parser.add_argument("--date", default=None, help="Output date in YYMMDD format. Defaults to today.")
+    args = parser.parse_args()
+    asof_date = (
+        datetime.strptime(args.date, "%y%m%d") if args.date else datetime.now()
+    )
+
     sectors_dict = load_sectors()
     sector_results = {}
     
@@ -136,10 +153,14 @@ def main():
         browser.close()
         
     # Get previous excel file to calculate weekly diff
-    import glob, os
-    os.makedirs("컨센서스", exist_ok=True)
-    current_filename = f"{datetime.now().strftime('%y%m%d')}_Sector_consensus.xlsx"
-    old_files = sorted([f for f in glob.glob("컨센서스/*_Sector_consensus.xlsx") if not os.path.basename(f).startswith("~$") and os.path.basename(f) != current_filename])
+    import os
+    CONSENSUS_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    current_filename = f"{asof_date.strftime('%y%m%d')}_Sector_consensus.xlsx"
+    old_files = sorted(
+        path
+        for path in CONSENSUS_DATA_DIR.glob("*_Sector_consensus.xlsx")
+        if not path.name.startswith("~$") and path.name != current_filename
+    )
     old_xls = pd.ExcelFile(old_files[-1]) if old_files else None
     
     for sheet_name, df in sector_results.items():
@@ -170,8 +191,8 @@ def main():
                         
                 df["전주 대비 증감율(%)"] = df.apply(calc_weekly_diff, axis=1)
 
-    yymmdd = datetime.now().strftime("%y%m%d")
-    filename = os.path.join("컨센서스", f"{yymmdd}_Sector_consensus.xlsx")
+    yymmdd = asof_date.strftime("%y%m%d")
+    filename = CONSENSUS_DATA_DIR / f"{yymmdd}_Sector_consensus.xlsx"
     with pd.ExcelWriter(filename) as writer:
         wrote_any = False
         for sheet_name, df in sector_results.items():
@@ -214,10 +235,22 @@ def main():
         return filtered
 
     for sector in sectors_dict.keys():
-        os.makedirs(sector, exist_ok=True)
-        md_filename = os.path.join(sector, f"{yymmdd}_{sector}_consensus.md")
+        output_dir = sector_consensus_dir(sector)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        md_filename = output_dir / f"{yymmdd}_{sector}_consensus.md"
         with open(md_filename, "w", encoding="utf-8") as md_file:
-            md_file.write(f"# {sector} 컨센서스 요약 ({yymmdd})\n\n")
+            md_file.write(
+                "---\n"
+                f"date: 20{yymmdd[:2]}-{yymmdd[2:4]}-{yymmdd[4:6]}\n"
+                "type: consensus\n"
+                "scope: sector\n"
+                f"sector: {sector}\n"
+                "status: active\n"
+                "tags:\n"
+                "  - \"#Consensus\"\n"
+                "---\n\n"
+                f"# {sector} 컨센서스 요약 ({yymmdd})\n\n"
+            )
             
             annual_df = filter_for_md(sector_results.get(f"{sector}_연간"))
             if annual_df is not None and not annual_df.empty:

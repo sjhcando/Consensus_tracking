@@ -4,6 +4,7 @@ import json
 import requests
 import urllib.parse
 from bs4 import BeautifulSoup
+from project_paths import sector_reports_dir
 
 def clean_filename(filename):
     # 특수문자 제거 및 공백 정리
@@ -61,7 +62,7 @@ def download_reports(start_date="260501", end_date="260524"):
         print(f"--- Fetching for {target['name']} ---")
         
         # 섹터명 하위 폴더 생성
-        sector_path = target["sector_dir"]
+        sector_path = sector_reports_dir(target["sector_dir"])
         os.makedirs(sector_path, exist_ok=True)
         
         page = 1
@@ -122,7 +123,7 @@ def download_reports(start_date="260501", end_date="260524"):
                 clean_broker = clean_filename(broker)
                 
                 filename = f"{yymmdd}_{clean_cat}_{clean_title}_{clean_broker}.pdf"
-                filepath = os.path.join(sector_path, filename)
+                filepath = os.path.join(str(sector_path), filename)
                 
                 if not os.path.exists(filepath):
                     print(f"Downloading: {filename}")

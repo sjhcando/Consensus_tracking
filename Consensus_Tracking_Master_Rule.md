@@ -1,3 +1,18 @@
+---
+date: 2026-08-02
+type: process
+scope: process
+status: active
+stance: monitor
+delta: unchanged
+conviction: mid
+next_trigger: 변수 변화 추적 프롬프트_V1.md 적용
+source_from: 변수 변화 추적 프롬프트_V1.md
+tags:
+  - "#Process/Consensus_Tracking"
+  - "#System/Reference"
+---
+
 # 주간 투자 종목 컨센서스 추적 마스터 룰북 (Consensus Tracking Master Rulebook)
 
 이 문서는 투자하고 있는 장기 구조적 트렌드 산업 및 주요 종목의 **변화량(Delta)**만을 체계적으로 추출하고 모니터링하기 위한 마스터 룰북이다. 단순 뉴스 요약이 아닌, **"시장 기여도와 성장 기대치 변화"**를 정밀 분석하여 의사결정을 지원하는 투자 모니터링 엔진 역할을 수행한다.
@@ -6,28 +21,35 @@
 
 ## Ⅰ. 전체 분석 프로세스 (Workflow)
 
-매주 금요일 장 마감 이후 혹은 토요일 오전, 다음의 2단계 프로세스를 거쳐 완료한다.
+매주 금요일 장 마감 이후 혹은 토요일 오전, 다음의 3단계 프로세스를 거쳐 완료한다.
 
-### 1단계: 파이프라인 자동화 실행 (`run_pipeline.py`)
+### 1단계: 데이터 수집 (`run_pipeline.py`)
 통합 파이프라인 스크립트를 통해 아래의 데이터 수집 및 전처리 단계를 한 번에 실행한다.
 ```bash
-# 기본값 실행 (최근 5일간의 최신 보고서 및 금주 컨센서스 크롤링)
-python run_pipeline.py
-
-# 날짜 범위를 직접 지정하여 실행할 경우
-python run_pipeline.py --start 260525 --end 260530
+# 날짜 범위 지정 후 수집만 실행
+python run_pipeline.py --start 260720 --end 260726 --skip-git
 ```
 *   **수행 내용**:
-    1.  `track_consensus.py` 실행: Fnguide에서 실적 컨센서스를 추출해 `YYMMDD_Sector_consensus.xlsx` 및 분야별 `.md` 요약 생성.
-    2.  `download_naver_research.py` 실행: 지정된 기간 동안의 네이버 증권 산업/종목 보고서 다운로드.
+    1.  `track_consensus.py` 실행: Fnguide에서 실적 컨센서스를 추출해 `data/consensus/YYMMDD_Sector_consensus.xlsx` 및 `research/섹터/consensus/` Markdown 요약 생성.
+    2.  `download_naver_research.py` 실행: 지정된 기간 동안의 네이버 증권 산업/종목 보고서를 `research/섹터/reports/`에 다운로드.
     3.  PDF 텍스트 변환 (`pypdf`): 새로 유입된 PDF 파일들을 `.txt` 파일로 자동 추출.
-    4.  `compare_consensus.py` 실행: 지난주 파일과 대조하여 컨센서스 변화율 비교 분석표(`Consensus_Diff_*.md`) 생성.
-    5.  Git 버전 관리 자동 반영 및 GitHub 원격 푸시.
+    4.  `compare_consensus.py` 실행: 지난주 파일과 대조하여 `data/consensus/diffs/Consensus_Diff_*.md` 생성.
+    5.  `collect_market_snapshot.py` 실행: `data/market/`에 섹터/종목 주간 수익률과 가격 신호 CSV 생성.
 
 ### 2단계: Consensus 변화 보고서 작성 (AI 에이전트 수행)
 본 마스터 룰북의 지침에 근거하여 추출된 최신 컨센서스 정량 값과 최신 텍스트 보고서 내용을 융합 분석해 분야별 보고서를 작성한다.
-*   **결과물 저장 포맷**: `YYMMDD_투자섹터_update.md` (예: `260530_반도체_update.md`)
+*   **결과물 저장 포맷**: `research/섹터/updates/YYMMDD_투자섹터_update.md` (예: `research/반도체/updates/260530_반도체_update.md`)
 *   **출력 섹터**: 변화가 감지되거나 신규 리포트가 있는 섹터 (반도체, 방산, 전기전자, 조선, 전력기기 등)
+
+### 3단계: 형식 검증 및 배포
+```bash
+# 마켓데이터를 포함한 고정 양식 검증
+python validate_weekly_updates.py --date 260726
+
+# 재수집 없이 검증, 커밋, 푸시
+python run_pipeline.py --publish-only --end 260726
+```
+검증 실패 시 커밋과 푸시는 중단된다. 배포는 검증에 통과한 당주 컨센서스, 업데이트, 마켓데이터, 변화 비교 파일만 대상으로 한다.
 
 ---
 
@@ -95,41 +117,11 @@ python run_pipeline.py --start 260525 --end 260530
 
 ---
 
-## Ⅳ. 출력 형식 및 양식 (Output Template)
+## Ⅳ. 출력 명세의 단일 기준점
 
-출력물은 반드시 마크다운으로 작성하며, 각 분야별 보고서(`YYMMDD_투자섹터_update.md`)는 아래 5개 장표 구조를 정확히 준수하여 작성한다.
+주간 업데이트의 제목, YAML frontmatter, 1~5번 섹션 순서, 마켓데이터 위치는 [변수 변화 추적 프롬프트_V1.md](변수%20변화%20추적%20프롬프트_V1.md)가 유일하게 정의한다. 이 문서는 산업별 모니터링 변수와 해석 원칙을 보충하는 참고 문서이며, 별도 양식을 정의하지 않는다.
 
-```markdown
-# [YYMMDD] [투자섹터] 섹터 주간 업데이트
-
-[간략한 서론: 금주 수집된 정량 컨센서스 및 증권사 리서치 보고서 소스 언급]
-
----
-
-### 1. 실적 추정치 모니터링 결과
-*   **[주요기업 A]**: 연간 매출 [전주대비 %] [1개월전대비 %], 영업이익 [전주대비 %] [1개월전대비 %] (MoM/WoW 수치 필수 기록)
-*   **[주요기업 B]**: 분기(2Q26) 매출 [전주대비 %], 영업이익 [전주대비 %] ...
-*   **실적 추정치 상향/하향에 대한 주요 근거**: 
-    - [증권사 추정치가 대폭 상향/하향 조정된 수치적, 사업적 원인 서술]
-
-### 2. 핵심 모니터링 항목 (변화 내용)
-*   **[변화 포인트 ①: 예시 - HBM3E 수율 병목 및 단가 인상 추진]**:
-    - [텍스트 보고서에서 발췌한 구체적 팩트 및 근거 서술]
-*   **[변화 포인트 ②: 예시 - LTA(장기공급계약) 체결 비율 증가]**:
-    - [변화의 원인과 구조적 흐름 기술]
-
-### 3. 시장 해석
-*   **기존 컨센서스 대비 무엇이 변했는가**:
-    - [일시적 수급 미스매치로 보던 시각이 장기 성장 구조로 변화한 부분 등 시장 기대감 변화 중심 기술]
-*   **업황 단계 판정**: **[가속(Acceleration) / 둔화(Deceleration) / 유지(Stable) / 리스크 확대(Risk Increase)]**
-    - [판정 이유를 1~2문장으로 명확히 설명]
-
-### 4. 관련 기업
-*   **[기업명 (티커)]**: [해당 기업이 수혜 또는 피해를 입는 핵심 연결고리 서술]
-
-### 5. 한줄 결론
-> **"[시장이 현재 가장 기대하거나 우려하는 핵심 요소를 압축한 한줄 요약]"**
-```
+실제 작성은 `templates/weekly_sector_update_template.md`를 사용하고, 저장 전 `validate_weekly_updates.py` 검증을 통과해야 한다.
 
 ---
 

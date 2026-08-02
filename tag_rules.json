@@ -1,0 +1,34 @@
+{
+  "source": {
+    "title": "Tags 규칙.md",
+    "path": "G:\\내 드라이브\\인사이트\\Tags 규칙.md",
+    "url": "https://drive.google.com/file/d/1fdex_lDKHT2Q-xyuxYalC0l8G6jDhOKp",
+    "synced_at": "2026-08-02"
+  },
+  "sector_tags": {
+    "반도체": {
+      "level_2": "#Sector_Analysis/반도체",
+      "update": "#Sector_Analysis/반도체/Update"
+    },
+    "전기전자": {
+      "level_2": "#Sector_Analysis/전기전자",
+      "update": "#Sector_Analysis/전기전자/Update"
+    },
+    "방산": {
+      "level_2": "#Sector_Analysis/Defense",
+      "update": "#Sector_Analysis/Defense/Update"
+    },
+    "조선": {
+      "level_2": "#Sector_Analysis/Shipbuilding",
+      "update": "#Sector_Analysis/Shipbuilding/Update"
+    },
+    "전력기기": {
+      "level_2": "#Sector_Analysis/K-전력기기",
+      "update": "#Sector_Analysis/K-전력기기/Update"
+    }
+  },
+  "stock_tag_rule": {
+    "korean": "#Stocks/종목명",
+    "us": "#Stocks/TICKER"
+  }
+}

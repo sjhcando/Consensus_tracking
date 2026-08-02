@@ -9,6 +9,7 @@ import io
 import xml.etree.ElementTree as ET
 from datetime import datetime
 import pandas as pd
+from project_paths import REFERENCE_DATA_DIR
 
 def get_dart_corp_codes(api_key, target_stock_codes):
     """
@@ -162,9 +163,8 @@ def main():
         
     df = df[["기업명", "접수일자", "보고서명"]]
     
-    output_dir = "컨센서스"
-    os.makedirs(output_dir, exist_ok=True)
-    output_path = os.path.join(output_dir, "DART_Disclosures.xlsx")
+    REFERENCE_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    output_path = REFERENCE_DATA_DIR / "DART_Disclosures.xlsx"
     
     # Write to Excel
     df.to_excel(output_path, index=False)

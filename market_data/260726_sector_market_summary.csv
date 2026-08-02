@@ -1,6 +1,0 @@
-﻿date,sector,constituent_count,avg_ret_1w,median_ret_1w,avg_ret_1m,avg_excess_ret_1w,avg_drawdown_52w,overheated_count,extended_count,correction_watch_count,positive_count,negative_count,sector_price_signal
-2026-07-26,반도체,2,-3.33,-3.33,-29.27,-0.91,-37.25,0,0,2,0,0,correction_watch
-2026-07-26,방산,4,2.79,2.78,-6.63,5.2,-35.79,0,0,4,0,0,extended
-2026-07-26,전기전자,4,-7.17,-5.94,-26.7,-4.75,-50.49,0,0,4,0,0,correction_watch
-2026-07-26,전력기기,5,2.42,1.63,-14.9,4.84,-47.73,0,0,5,0,0,correction_watch
-2026-07-26,조선,5,2.81,2.69,-9.03,5.23,-37.56,0,0,5,0,0,extended

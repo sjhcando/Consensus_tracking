@@ -32,7 +32,7 @@ tags:
    * 지난주 데이터와 이번 주 데이터를 자동 대조하여 **주간 변동률(%) 및 1개월 전 대비 증감율**을 계산하고, 핵심 변동 요약 문서(`Consensus_Diff_*.md`)를 생성합니다.
 
 3. **증권사 리포트 수집 및 자동 텍스트 변환** (`download_naver_research.py` & `run_pipeline.py` 내 내장 변환기)
-   * 네이버 증권 리서치 게시판에서 지정한 주간 범위의 리포트를 자동 검색하여 섹터별 폴더로 PDF를 자동 정리합니다.
+   * 네이버 증권 리서치 게시판에서 지정한 주간 범위의 리포트를 자동 검색하여 `research/섹터/reports/`에 PDF를 자동 정리합니다.
    * `pypdf` 라이브러리를 활용하여 다운로드된 최신 PDF를 프로그램으로 파싱 가능한 **텍스트(`.txt`) 파일로 자동 일괄 변환**합니다. (AI 분석의 정성 데이터로 즉시 활용 가능)
 
 4. **[NEW] 밸류에이션 비교 테이블 자동화** (`valuation_capturer.py`)
@@ -61,16 +61,18 @@ tags:
  ┣ 📜 credentials.json               # 🔑 [NEW] Valley AI 로그인 계정 정보 (Git 제외)
  ┣ 📜 README.md                      # 프로그램 사용 설명서
  ┣ 📜 .gitignore                     # Git 제외 설정 (엑셀 파일, 개인 정보, 대용량 PDF 등)
- ┣ 📜 Consensus_Diff_[날짜]_[날짜].md # 주간 컨센서스 변동량 결과 분석표 (자동 생성)
- ┣ 📂 컨센서스                        # 📂 [NEW] 수집된 컨센서스 및 밸류에이션 엑셀 파일들 저장 폴더 (Git 제외)
- ┃ ┣ 📜 [YYMMDD]_Sector_consensus.xlsx # 엑셀 원본 통합 데이터
- ┃ ┗ 📜 Stocks_Valuation.xlsx        # 밸류에이션 캡쳐 이미지 통합 엑셀
- ┣ 📂 반도체                         # 📂 반도체 섹터 요약 및 투자 보고서 폴더
- ┣ 📂 방산                           # 📂 방산 섹터 요약 및 투자 보고서 폴더
- ┣ 📂 전기전자                       # 📂 전기전자 섹터 요약 및 투자 보고서 폴더
- ┣ 📂 전력기기                       # 📂 전력기기 섹터 요약 및 투자 보고서 폴더
- ┣ 📂 조선                           # 📂 조선 섹터 요약 및 투자 보고서 폴더
- ┗ 📂 naver_reports                  # 다운로드된 PDF 및 변환된 TXT 리포트 (Git 제외)
+ ┣ 📂 data                            # 수집 원본 데이터
+ ┃ ┣ 📂 consensus                     # 컨센서스 Excel 원본
+ ┃ ┃ ┗ 📂 diffs                       # 주간 컨센서스 변화 Markdown
+ ┃ ┣ 📂 market                        # 주간 가격 스냅샷 CSV
+ ┃ ┗ 📂 reference                     # DART, 밸류에이션 Excel
+ ┣ 📂 research                        # 섹터별 리서치 산출물
+ ┃ ┗ 📂 [섹터]
+ ┃   ┣ 📂 reports                     # 다운로드 PDF 및 변환 TXT (Git 제외)
+ ┃   ┣ 📂 consensus                   # 섹터별 컨센서스 Markdown
+ ┃   ┗ 📂 updates                     # 최종 주간 업데이트 Markdown
+ ┣ 📂 templates                       # 업데이트 문서 템플릿
+ ┗ 📜 project_paths.py                # 저장 경로 단일 정의
 ```
 
 ---
@@ -107,7 +109,7 @@ python valuation_capturer.py --metric PSR --headed
 ```
 
 ### 4. [NEW] Open DART 기업 공시 수집 실행
-공시 시스템(Open DART)에서 국내 특정 기업들의 공시 기록 목록을 수집하여 엑셀 파일(`컨센서스/DART_Disclosures.xlsx`)로 저장합니다.
+공시 시스템(Open DART)에서 국내 특정 기업들의 공시 기록 목록을 수집하여 엑셀 파일(`data/reference/DART_Disclosures.xlsx`)로 저장합니다.
 ```bash
 # 기본 실행 (삼성전자, 삼성전기의 2026년 5월 공시 목록 수집)
 python dart_disclosure_capturer.py
@@ -122,21 +124,28 @@ python dart_disclosure_capturer.py --all-stocks
 python dart_disclosure_capturer.py --apikey YOUR_API_KEY
 ```
 
-### 5. 컨센서스 자동화 파이프라인 원클릭 실행
-매주 주말, 아래 명령어를 실행하여 크롤링부터 리포트 텍스트 변환 및 깃허브 업로드까지 논스톱으로 처리합니다.
+### 5. 주간 업데이트 워크플로우
+주간 업데이트는 수집, 분석·작성, 검증·배포의 세 단계로 나뉩니다. 출력 양식의 단일 기준은 `변수 변화 추적 프롬프트_V1.md`이며, 작성 시 `templates/weekly_sector_update_template.md`의 1~5번 구조를 유지합니다. 마켓데이터는 `3-1. 주간 시황 및 가격 해석`에만 추가합니다.
+
+먼저 수집 단계만 실행합니다.
 ```bash
-# 기본 실행 (과거 5일간의 리포트 다운로드 및 Git 업로드 자동 진행)
-python run_pipeline.py
-
-# 특정 주간 날짜를 직접 설정하여 다운로드할 때 (YYMMDD)
-python run_pipeline.py --start 260525 --end 260530
-
-# Git 원격 푸시 단계를 건너뛰고 싶을 때
-python run_pipeline.py --skip-git
+# 특정 주간의 컨센서스, 리포트, PDF 텍스트, 비교표, 마켓데이터 수집
+python run_pipeline.py --start 260720 --end 260726 --skip-git
 ```
 
+그 다음 AI 에이전트가 `AGENTS.md`의 필수 입력 순서에 따라 섹터별 `YYMMDD_섹터_update.md`를 작성합니다. 마지막으로 검증을 통과한 경우에만 배포합니다.
+```bash
+# 모든 섹터 업데이트의 고정 양식과 source_from 검증
+python validate_weekly_updates.py --date 260726
+
+# 재수집 없이 검증, 커밋, 푸시: 검증 실패 시 커밋과 푸시가 중단됨
+python run_pipeline.py --publish-only --end 260726
+```
+
+주간 업데이트의 `tags`는 [Google Drive Tags 규칙](https://drive.google.com/file/d/1fdex_lDKHT2Q-xyuxYalC0l8G6jDhOKp)을 기준으로 하며, 로컬 검증용 매핑은 `tag_rules.json`에 보관합니다. 태그 규칙을 변경하면 이 파일도 함께 갱신해야 합니다.
+
 ### 6. 주간 시황 및 가격 스냅샷 수집
-추적 종목의 주가 수익률, 벤치마크 대비 초과수익률, 52주 고점 대비 하락률, 거래대금 과열 여부를 수집합니다. 결과는 `market_data/` 폴더에 저장됩니다.
+추적 종목의 주가 수익률, 벤치마크 대비 초과수익률, 52주 고점 대비 하락률, 거래대금 과열 여부를 수집합니다. 결과는 `data/market/` 폴더에 저장됩니다.
 ```bash
 # 오늘 기준 수집
 python collect_market_snapshot.py
@@ -147,8 +156,8 @@ python collect_market_snapshot.py --date 260724
 
 생성 파일:
 ```text
-market_data/YYMMDD_market_snapshot.csv
-market_data/YYMMDD_sector_market_summary.csv
+data/market/YYMMDD_market_snapshot.csv
+data/market/YYMMDD_sector_market_summary.csv
 ```
 
 `price_signal`은 가격 국면을 단순 규칙으로 분류합니다. `overheated`는 매도 신호가 아니라 컨센서스 개선 대비 가격 선반영 가능성을 별도로 점검해야 한다는 의미입니다.

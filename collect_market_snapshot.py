@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 from pykrx import stock
+from project_paths import MARKET_DATA_DIR
 
 
 BENCHMARK_INDEX = {
@@ -345,7 +346,7 @@ def main():
     parser = argparse.ArgumentParser(description="Collect weekly market snapshot for tracked Korean stocks.")
     parser.add_argument("--date", default=None, help="As-of date in YYMMDD or YYYYMMDD. Defaults to today.")
     parser.add_argument("--stocks", default="stocks.json", help="Path to stocks.json.")
-    parser.add_argument("--out-dir", default="market_data", help="Output directory.")
+    parser.add_argument("--out-dir", default=str(MARKET_DATA_DIR), help="Output directory.")
     args = parser.parse_args()
 
     asof_dt = parse_asof_date(args.date)

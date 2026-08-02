@@ -1,6 +1,7 @@
 import pandas as pd
 import sys
 import os
+from project_paths import CONSENSUS_DATA_DIR, sector_consensus_dir
 
 def filter_for_md(df):
     if df is None or df.empty:
@@ -30,7 +31,7 @@ def filter_for_md(df):
     return filtered
 
 def main():
-    xl_file = "260530_Sector_consensus.xlsx"
+    xl_file = CONSENSUS_DATA_DIR / "260530_Sector_consensus.xlsx"
     if not os.path.exists(xl_file):
         print(f"File {xl_file} not found.")
         sys.exit(1)
@@ -51,11 +52,24 @@ def main():
             sectors[sector][period] = s
             
     for sector, sheet_map in sectors.items():
-        md_filename = f"260530_{sector}_consensus.md"
+        output_dir = sector_consensus_dir(sector)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        md_filename = output_dir / f"260530_{sector}_consensus.md"
         print(f"Writing to {md_filename}...")
         
         with open(md_filename, "w", encoding="utf-8") as md_file:
-            md_file.write(f"# {sector} 컨센서스 요약 (260530)\n\n")
+            md_file.write(
+                "---\n"
+                "date: 2026-05-30\n"
+                "type: consensus\n"
+                "scope: sector\n"
+                f"sector: {sector}\n"
+                "status: active\n"
+                "tags:\n"
+                "  - \"#Consensus\"\n"
+                "---\n\n"
+                f"# {sector} 컨센서스 요약 (260530)\n\n"
+            )
             
             if '연간' in sheet_map:
                 df_annual = pd.read_excel(xl, sheet_name=sheet_map['연간'])

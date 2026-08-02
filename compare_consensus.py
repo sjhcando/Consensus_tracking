@@ -2,6 +2,7 @@ import pandas as pd
 import glob
 import sys
 import os
+from project_paths import CONSENSUS_DATA_DIR, CONSENSUS_DIFF_DIR
 
 def compare_excel(old_file, new_file):
     print(f"비교: {old_file} vs {new_file}")
@@ -70,7 +71,11 @@ def compare_excel(old_file, new_file):
 
 if __name__ == "__main__":
     # 가장 최근 2개의 _Sector_consensus.xlsx 파일을 자동으로 찾아 비교
-    files = sorted([f for f in glob.glob("컨센서스/*_Sector_consensus.xlsx") if not os.path.basename(f).startswith("~$")])
+    files = sorted(
+        str(path)
+        for path in CONSENSUS_DATA_DIR.glob("*_Sector_consensus.xlsx")
+        if not path.name.startswith("~$")
+    )
     if len(files) < 2:
         print("비교할 파일이 2개 이상 필요합니다.")
         sys.exit(1)
@@ -82,9 +87,21 @@ if __name__ == "__main__":
     if not df_diff.empty:
         old_base = os.path.basename(old_file)
         new_base = os.path.basename(new_file)
-        md_file = f"Consensus_Diff_{old_base.split('_')[0]}_to_{new_base.split('_')[0]}.md"
+        CONSENSUS_DIFF_DIR.mkdir(parents=True, exist_ok=True)
+        md_file = CONSENSUS_DIFF_DIR / f"Consensus_Diff_{old_base.split('_')[0]}_to_{new_base.split('_')[0]}.md"
         with open(md_file, 'w', encoding='utf-8') as f:
-            f.write(f"# 컨센서스 주간 변화 종목 추출 ({old_file} vs {new_file})\n\n")
+            end_date = new_base.split("_")[0]
+            f.write(
+                "---\n"
+                f"date: 20{end_date[:2]}-{end_date[2:4]}-{end_date[4:6]}\n"
+                "type: consensus\n"
+                "scope: sector\n"
+                "status: active\n"
+                "tags:\n"
+                "  - \"#Consensus/Diff\"\n"
+                "---\n\n"
+                f"# 컨센서스 주간 변화 종목 추출 ({old_file} vs {new_file})\n\n"
+            )
             
             df_diff_md = df_diff.copy()
             df_diff_md['이전값'] = df_diff_md['이전값'].apply(lambda x: f"{x:,.0f}")

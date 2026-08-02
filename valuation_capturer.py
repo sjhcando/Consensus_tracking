@@ -6,6 +6,7 @@ from datetime import datetime
 from playwright.sync_api import sync_playwright
 from openpyxl import Workbook, load_workbook
 from openpyxl.drawing.image import Image as OpenpyxlImage
+from project_paths import REFERENCE_DATA_DIR
 
 def load_credentials():
     credentials_path = "credentials.json"
@@ -102,8 +103,8 @@ def run_valuation_pipeline(email, password, stocks_dict, metric="PER", headed=Fa
     temp_dir = "valley_temp"
     os.makedirs(temp_dir, exist_ok=True)
     
-    os.makedirs("컨센서스", exist_ok=True)
-    excel_path = os.path.join("컨센서스", "Stocks_Valuation.xlsx")
+    REFERENCE_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    excel_path = REFERENCE_DATA_DIR / "Stocks_Valuation.xlsx"
     
     # 1. Initialize Excel Workbook
     if os.path.exists(excel_path):
